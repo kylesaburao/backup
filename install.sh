@@ -1,3 +1,3 @@
 #!/usr/bin/env zsh
 
-brew install gpg pigz
+brew install gpg pigz rsync
