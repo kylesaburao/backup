@@ -22,15 +22,25 @@ prepare() {
 
 # $1 target file
 # $2 destination
+# $3 is remote
 replicate() {
-if [ -d "$2" ]; then
-    echo "Copying to $2"
-    mkdir -p $2/$BACKUPS_FOLDER \
-    && cp $1 $2/$BACKUPS_FOLDER/ \
-    && echo "Copied to $2/$BACKUPS_FOLDER/$1"
-else
-    echo "$2 is not available"
-fi
+    echo "Destination: $2"
+    dest="$2/$BACKUPS_FOLDER/"
+
+    if [ -z ${3+x} ]; then
+        echo "Copying to local"
+        if [ -d "$2" ]; then
+            mkdir -p $dest \
+            && rsync -P $1 $dest \
+            && echo "Copied to $dest$1"
+        else
+            echo "$2 is not available"
+        fi
+    else
+        echo "Copying to remote"
+        rsync -P $1 $dest \
+        && echo "Copied to $dest$1"
+    fi
 }
 
 
@@ -71,7 +81,7 @@ if [ $? -ne 0 ]; then
 fi
 
 replicate $ARCHIVE_ENCRYPTED $REPLICATION_SITE_1
-replicate $ARCHIVE_ENCRYPTED $REPLICATION_SITE_2
+replicate $ARCHIVE_ENCRYPTED $REPLICATION_SITE_2 1 # Remote
 
 cleanup
 echo "Done"
