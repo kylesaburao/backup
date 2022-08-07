@@ -5,7 +5,6 @@ source $SCRIPT_DIR/config.env
 
 AUTH="$SCRIPT_DIR/auth.env"
 WORKDIR="$SCRIPT_DIR/.tmp"
-STAGING="$WORKDIR/$BACKUPS_FOLDER"
 SOURCES=($SOURCE_1 $SOURCE_2)
 ARCHIVE_ENCRYPTED="backup.tar.gz.gpg"
 
@@ -19,7 +18,7 @@ trap cleanup EXIT
 
 prepare() {
     cleanup
-    mkdir -p $STAGING
+    mkdir -p $WORKDIR
 }
 
 # $1 target file
@@ -48,7 +47,6 @@ replicate() {
     fi
 }
 
-
 # Check that sources folders exist
 for source in "${SOURCES[@]}"; do
     if [ ! -d "$source" ]; then
@@ -61,20 +59,10 @@ done
 
 prepare
 
-echo "Copying"
-# Copy files from sources to documents
-for source in ${SOURCES[@]}; do
-    cp -R $source $STAGING
-    if [ $? -ne 0 ]; then
-        echo "Error copying files from $source to $STAGING"
-        exit 1
-    fi
-done
-
 echo "Building archive"
 cd $WORKDIR
 
-tar cf - $BACKUPS_FOLDER \
+tar -C $SOURCE_DIRECTORY -cf - $SOURCE_1 $SOURCE_2 \
 | pigz -9 \
 | pv | gpg --cipher-algo AES256 -c --passphrase-file $AUTH --batch -o $ARCHIVE_ENCRYPTED
 
@@ -85,7 +73,5 @@ fi
 
 replicate $ARCHIVE_ENCRYPTED $REPLICATION_SITE_1
 replicate $ARCHIVE_ENCRYPTED $REPLICATION_SITE_2
-replicate $ARCHIVE_ENCRYPTED $REPLICATION_SITE_3 1 && \
-ssh $REPLICATION_SERVER_3 $REPLICATION_SITE_3_SCRIPT
 
 echo "Done"
