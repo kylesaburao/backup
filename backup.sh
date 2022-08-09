@@ -23,13 +23,9 @@ prepare() {
 
 # $1 target file
 # $2 destination
-# $3 is remote
+# $3 remote
+# $4 remote port
 replicate() {
-    send() {
-        rsync -aP $1 $2 \
-        && echo "Copied to $2$1"
-    }
-
     echo "Destination: $2"
     dest="$2/$BACKUPS_FOLDER/"
 
@@ -37,13 +33,13 @@ replicate() {
         echo "Copying to local"
         if [ -d "$2" ]; then
             mkdir -p $dest && \
-            send $1 $dest
+            rsync -aP $1 $dest
         else
             echo "$2 is not available"
         fi
     else
         echo "Copying to remote"
-        send $1 $dest
+        rsync -aP $1 $dest -e "ssh -p $4"
     fi
 }
 
@@ -75,5 +71,7 @@ fi
 replicate $ARCHIVE_ENCRYPTED $REPLICATION_SITE_1
 replicate $ARCHIVE_ENCRYPTED $REPLICATION_SITE_2
 replicate $ARCHIVE_ENCRYPTED $REPLICATION_SITE_3
+replicate $ARCHIVE_ENCRYPTED $REPLICATION_SITE_4 1 $REPLICATION_SITE_4_PORT
+
 
 echo "Done"
