@@ -49,11 +49,12 @@ replicate() {
 
 # Check that sources folders exist
 for source in "${SOURCES[@]}"; do
-    if [ ! -d "$source" ]; then
-        echo "Source $source does not exist"
+    src="$SOURCE_DIRECTORY/$source"
+    if [ ! -d "$src" ]; then
+        echo "Source $src does not exist"
         exit 1
     else
-        echo "$source OK"
+        echo "$src OK"
     fi
 done
 
